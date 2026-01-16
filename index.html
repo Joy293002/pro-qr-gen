@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pro Gen Suite: Offline & Fast</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .input-field {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+            outline: none;
+        }
+        
+        select.input-field option { background: #0f172a; color: white; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease forwards; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-6xl mx-auto">
+        
+        <header class="glass-card rounded-2xl p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+
+            <div class="flex items-center gap-6 z-10">
+                <div class="relative group">
+                    <img src="j.jpg" id="adminProfile" class="w-20 h-20 rounded-full border-4 border-indigo-500/30 object-cover shadow-lg" alt="Admin Profile">
+                    
+                    <label for="profileUpload" class="absolute bottom-0 right-0 bg-indigo-600 text-white p-1.5 rounded-full cursor-pointer hover:bg-indigo-500 transition shadow-lg">
+                        <i class="fas fa-camera text-xs"></i>
+                    </label>
+                    <input type="file" id="profileUpload" class="hidden" accept="image/*">
+                </div>
+                <div>
+                    <input type="text" id="adminName" value="Welcome, Admin" class="bg-transparent text-2xl font-bold text-white border-b border-transparent hover:border-indigo-500 focus:border-indigo-500 outline-none transition w-full md:w-auto" placeholder="Enter Your Name">
+                    <p class="text-indigo-400 text-sm font-medium mt-1">Pro QR & Barcode Suite (Offline Mode)</p>
+                </div>
+            </div>
+            
+            <div class="z-10 text-right">
+                <button onclick="resetData()" class="text-xs text-red-400 hover:text-red-300 underline"><i class="fas fa-trash"></i> Reset Data</button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-6">
+                
+                <div class="glass-card rounded-2xl p-6 md:p-8">
+                    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2 text-indigo-400">
+                        <i class="fas fa-bolt"></i> Generate Instant Code
+                    </h2>
+
+                    <div class="flex flex-col md:flex-row bg-slate-800/50 p-1 rounded-xl mb-6 gap-1">
+                        <button onclick="setMode('text')" id="tabText" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg text-center">
+                            <i class="fas fa-link mr-2"></i> Text / URL
+                        </button>
+                        <button onclick="setMode('gpay')" id="tabGpay" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white text-center">
+                            <i class="fab fa-google-pay mr-2"></i> GPay / UPI
+                        </button>
+                        <button onclick="setMode('barcode')" id="tabBarcode" class="flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white text-center">
+                            <i class="fas fa-barcode mr-2"></i> Barcode
+                        </button>
+                    </div>
+
+                    <div id="textForm" class="space-y-4 fade-in">
+                        <div>
+                            <label class="block text-sm text-slate-400 mb-2">Enter Content</label>
+                            <input type="text" id="textInput" placeholder="https://yourwebsite.com or Any Text" class="w-full input-field px-4 py-3 rounded-xl">
+                        </div>
+                    </div>
+
+                    <div id="gpayForm" class="space-y-4 hidden fade-in">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-2">UPI ID</label>
+                                <input type="text" id="upiId" placeholder="example@okhdfcbank" class="w-full input-field px-4 py-3 rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-2">Payee Name</label>
+                                <input type="text" id="upiName" placeholder="John Doe" class="w-full input-field px-4 py-3 rounded-xl">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="barcodeForm" class="space-y-4 hidden fade-in">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-2">Barcode Content</label>
+                                <input type="text" id="barcodeInput" placeholder="12345678" class="w-full input-field px-4 py-3 rounded-xl">
+                            </div>
+                            <div>
+                                <label class="block text-sm text-slate-400 mb-2">Format</label>
+                                <select id="barcodeType" class="w-full input-field px-4 py-3 rounded-xl">
+                                    <option value="CODE128">Code 128 (Standard)</option>
+                                    <option value="EAN13">EAN-13 (Retail)</option>
+                                    <option value="UPC">UPC (US Retail)</option>
+                                    <option value="CODE39">Code 39</option>
+                                    <option value="ITF14">ITF-14</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="showBarcodeText" checked class="w-4 h-4 rounded border-slate-500 text-indigo-600 focus:ring-indigo-500 bg-slate-700">
+                            <label for="showBarcodeText" class="text-sm text-slate-300">Show text below barcode</label>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 flex items-center gap-4 border-t border-slate-700 pt-6">
+                        <label class="text-sm text-slate-400">Code Color:</label>
+                        <input type="color" id="qrColor" value="#000000" class="bg-transparent border-0 w-10 h-10 cursor-pointer rounded overflow-hidden">
+                    </div>
+
+                    <button onclick="generateCode()" class="w-full mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 rounded-xl shadow-lg shadow-indigo-500/20 transition transform hover:scale-[1.02] active:scale-95 flex justify-center items-center gap-2">
+                        <span>Generate Code</span>
+                        <i class="fas fa-wand-magic-sparkles"></i>
+                    </button>
+                    
+                    <div id="errorMsg" class="hidden mt-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-200 text-sm text-center"></div>
+                </div>
+
+                <div class="glass-card rounded-2xl p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-slate-200"><i class="fas fa-history mr-2"></i>Recent History</h3>
+                        <button onclick="clearHistory()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-1 rounded text-white transition">Clear All</button>
+                    </div>
+                    <div id="historyList" class="space-y-3 max-h-80 overflow-y-auto pr-2"></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <div class="glass-card rounded-2xl p-6 sticky top-6 text-center">
+                    <h3 class="text-lg font-semibold mb-4 text-white">Live Preview</h3>
+                    
+                    <div class="bg-white rounded-xl p-4 shadow-inner mb-6 relative group min-h-[250px] flex items-center justify-center overflow-hidden">
+                        
+                        <div id="placeholder" class="text-slate-300 flex flex-col items-center">
+                            <i class="fas fa-qrcode text-5xl mb-2"></i>
+                            <span class="text-sm">Preview will appear here</span>
+                        </div>
+                        
+                        <div id="qrcode-container" class="hidden"></div>
+                        
+                        <canvas id="barcode-canvas" class="hidden"></canvas>
+
+                        <img id="finalImage" src="" class="w-full h-full object-contain max-h-[250px] hidden rounded transition-all duration-300" alt="Generated Code">
+                    </div>
+
+                    <div id="actionButtons" class="hidden space-y-3 fade-in">
+                        <button onclick="downloadCode()" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-xl shadow-lg transition flex justify-center items-center gap-2">
+                            <i class="fas fa-download"></i> Download PNG
+                        </button>
+                        <p class="text-xs text-slate-400 mt-2">Generated locally • High Quality</p>
+                    </div>
+                    
+                    <div class="mt-8 pt-6 border-t border-slate-700">
+                         <div class="w-full h-32 bg-slate-800/50 rounded-lg flex items-center justify-center text-slate-600 text-xs italic border border-slate-700 border-dashed">
+                             [Ad Space]
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration & State ---
+        let currentMode = 'text';
+        
+        // --- Elements ---
+        const els = {
+            textForm: document.getElementById('textForm'),
+            gpayForm: document.getElementById('gpayForm'),
+            barcodeForm: document.getElementById('barcodeForm'),
+            tabText: document.getElementById('tabText'),
+            tabGpay: document.getElementById('tabGpay'),
+            tabBarcode: document.getElementById('tabBarcode'),
+            textInput: document.getElementById('textInput'),
+            upiId: document.getElementById('upiId'),
+            upiName: document.getElementById('upiName'),
+            barcodeInput: document.getElementById('barcodeInput'),
+            barcodeType: document.getElementById('barcodeType'),
+            showBarcodeText: document.getElementById('showBarcodeText'),
+            qrColor: document.getElementById('qrColor'),
+            finalImage: document.getElementById('finalImage'),
+            placeholder: document.getElementById('placeholder'),
+            actions: document.getElementById('actionButtons'),
+            historyList: document.getElementById('historyList'),
+            errorMsg: document.getElementById('errorMsg'),
+            qrContainer: document.getElementById('qrcode-container'),
+            barcodeCanvas: document.getElementById('barcode-canvas'),
+            adminName: document.getElementById('adminName'),
+            adminProfile: document.getElementById('adminProfile'),
+            profileUpload: document.getElementById('profileUpload')
+        };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProfile();
+            loadHistory();
+        });
+
+        // --- UI Logic ---
+        function setMode(mode) {
+            currentMode = mode;
+            els.errorMsg.classList.add('hidden');
+            
+            // Toggle Forms
+            els.textForm.classList.add('hidden');
+            els.gpayForm.classList.add('hidden');
+            els.barcodeForm.classList.add('hidden');
+            
+            // Reset Tabs
+            [els.tabText, els.tabGpay, els.tabBarcode].forEach(t => {
+                t.className = "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-white text-center";
+            });
+
+            // Activate specific
+            if (mode === 'text') {
+                els.textForm.classList.remove('hidden');
+                els.tabText.className = "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg text-center";
+            } else if (mode === 'gpay') {
+                els.gpayForm.classList.remove('hidden');
+                els.tabGpay.className = "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg text-center";
+            } else if (mode === 'barcode') {
+                els.barcodeForm.classList.remove('hidden');
+                els.tabBarcode.className = "flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all bg-indigo-600 text-white shadow-lg text-center";
+            }
+        }
+
+        // --- Core Generator Logic ---
+        function generateCode() {
+            els.errorMsg.classList.add('hidden');
+            let data = '';
+            let label = '';
+            let isBarcode = false;
+            let finalDataUrl = '';
+
+            try {
+                // 1. Prepare Data
+                if (currentMode === 'text') {
+                    const val = els.textInput.value.trim();
+                    if (!val) throw new Error("Please enter text content");
+                    data = val;
+                    label = val.substring(0, 15);
+                } else if (currentMode === 'gpay') {
+                    const uid = els.upiId.value.trim();
+                    const uname = els.upiName.value.trim();
+                    if (!uid || !uname) throw new Error("Please enter UPI ID and Name");
+                    data = `upi://pay?pa=${uid}&pn=${encodeURIComponent(uname)}`;
+                    label = `Pay: ${uname}`;
+                } else if (currentMode === 'barcode') {
+                    const val = els.barcodeInput.value.trim();
+                    if (!val) throw new Error("Please enter barcode data");
+                    data = val;
+                    label = `Bar: ${val}`;
+                    isBarcode = true;
+                }
+
+                // 2. Generate
+                const color = els.qrColor.value;
+
+                if (isBarcode) {
+                    // --- Generate Barcode using JsBarcode ---
+                    const format = els.barcodeType.value;
+                    const showText = els.showBarcodeText.checked;
+                    
+                    // Reset canvas
+                    const canvas = els.barcodeCanvas;
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    // Generate
+                    JsBarcode(canvas, data, {
+                        format: format,
+                        lineColor: color,
+                        width: 2,
+                        height: 100,
+                        displayValue: showText,
+                        background: "#ffffff", // White background for better scanning
+                        margin: 10
+                    });
+                    
+                    finalDataUrl = canvas.toDataURL("image/png");
+
+                } else {
+                    // --- Generate QR using QRCode.js ---
+                    els.qrContainer.innerHTML = ''; // clear previous
+                    
+                    // Create QR Object
+                    const qr = new QRCode(els.qrContainer, {
+                        text: data,
+                        width: 300,
+                        height: 300,
+                        colorDark : color,
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+
+                    // Wait slightly for canvas to render, then extract image
+                    setTimeout(() => {
+                        const qrCanvas = els.qrContainer.querySelector('canvas');
+                        if(qrCanvas) {
+                            finalDataUrl = qrCanvas.toDataURL("image/png");
+                            showResult(finalDataUrl, label, isBarcode ? 'BAR' : 'QR');
+                        }
+                    }, 100);
+                    return; // Return here, let timeout handle success
+                }
+
+                // Show result for Barcode (synchronous)
+                showResult(finalDataUrl, label, 'BAR');
+
+            } catch (err) {
+                els.errorMsg.textContent = err.message;
+                els.errorMsg.classList.remove('hidden');
+            }
+        }
+
+        function showResult(url, label, type) {
+            els.placeholder.classList.add('hidden');
+            els.finalImage.src = url;
+            els.finalImage.classList.remove('hidden');
+            els.actions.classList.remove('hidden');
+            els.actions.classList.add('flex');
+            
+            addToHistory({
+                id: Date.now(),
+                label: label,
+                type: type,
+                url: url, // Saving Data URL directly (might fill storage fast, but ensures offline access)
+                date: new Date().toLocaleTimeString()
+            });
+        }
+
+        // --- Download Logic ---
+        function downloadCode() {
+            const link = document.createElement('a');
+            link.download = `Code-${Date.now()}.png`;
+            link.href = els.finalImage.src;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // --- History Manager ---
+        function addToHistory(item) {
+            let history = JSON.parse(localStorage.getItem('gen_offline_history') || '[]');
+            
+            // Optimize storage: If URL is huge, maybe don't save it or truncate history aggressively
+            // Since we save DataURLs, we limit history to 5 items to prevent LocalStorage quota full
+            history.unshift(item);
+            if(history.length > 5) history.pop(); 
+            
+            localStorage.setItem('gen_offline_history', JSON.stringify(history));
+            renderHistory(history);
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('gen_offline_history') || '[]');
+            renderHistory(history);
+        }
+
+        function clearHistory() {
+            localStorage.removeItem('gen_offline_history');
+            renderHistory([]);
+        }
+
+        function renderHistory(history) {
+            els.historyList.innerHTML = '';
+            if (history.length === 0) {
+                els.historyList.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">No history yet.</div>';
+                return;
+            }
+            history.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'glass-card p-3 rounded-lg flex items-center justify-between hover:bg-slate-700/50 transition group';
+                const icon = item.type === 'BAR' ? '<i class="fas fa-barcode"></i>' : '<i class="fas fa-qrcode"></i>';
+                
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-10 h-10 bg-white/10 rounded flex items-center justify-center flex-shrink-0 text-white">${icon}</div>
+                        <div class="min-w-0">
+                            <h4 class="text-sm font-medium text-white truncate">${item.label}</h4>
+                            <p class="text-xs text-slate-400">${item.date}</p>
+                        </div>
+                    </div>
+                    <button onclick="restoreQR('${item.id}')" class="text-indigo-400 hover:text-white p-2"><i class="fas fa-eye"></i></button>
+                `;
+                els.historyList.appendChild(div);
+            });
+        }
+        
+        // Helper to find item by ID (since passing long DataURL in string arg is bad)
+        window.restoreQR = function(id) {
+            const history = JSON.parse(localStorage.getItem('gen_offline_history') || '[]');
+            const item = history.find(x => x.id == id);
+            if(item) {
+                els.placeholder.classList.add('hidden');
+                els.finalImage.src = item.url;
+                els.finalImage.classList.remove('hidden');
+                els.actions.classList.remove('hidden');
+            }
+        };
+
+        // --- Profile Logic ---
+        els.adminName.addEventListener('input', (e) => localStorage.setItem('qr_admin_name', e.target.value));
+        
+        els.profileUpload.addEventListener('change', function(e) {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        const MAX_WIDTH = 150;
+                        const scale = MAX_WIDTH / img.width;
+                        canvas.width = MAX_WIDTH;
+                        canvas.height = img.height * scale;
+                        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                        const dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+                        els.adminProfile.src = dataUrl;
+                        localStorage.setItem('qr_admin_pic', dataUrl);
+                    }
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        function loadProfile() {
+            const savedName = localStorage.getItem('qr_admin_name');
+            const savedPic = localStorage.getItem('qr_admin_pic');
+            if(savedName) els.adminName.value = savedName;
+            if(savedPic) els.adminProfile.src = savedPic;
+        }
+
+        function resetData() {
+            if(confirm('Reset all data?')) { localStorage.clear(); location.reload(); }
+        }
+    </script>
+</body>
+</html>
